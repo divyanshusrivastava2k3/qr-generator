@@ -3,12 +3,12 @@
   "cleanUrls": true,
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
-    { "src": "default.png", "use": "@vercel/static" },
-    { "src": "doraemon.png", "use": "@vercel/static" }
+    { "src": "g.png", "use": "@vercel/static" },
+    { "src": "d.png", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/default.png", "dest": "/default.png" },
-    { "src": "/doraemon.png", "dest": "/doraemon.png" },
+    { "src": "/g.png", "dest": "/g.png" },
+    { "src": "/d.png", "dest": "/d.png" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

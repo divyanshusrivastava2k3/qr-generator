@@ -962,13 +962,13 @@
     // Preloaded image definitions
     const preloadedImages = {
       gorilla: {
-        url: './default.png',
-        name: 'default.png',
+        url: './g.png',
+        name: 'g.png',
         blob: null
       },
       doraemon: {
-        url: './doraemon.png',
-        name: 'doraemon.png',
+        url: './d.png',
+        name: 'd.png',
         blob: null
       }
     };
@@ -1077,7 +1077,7 @@
     async function preloadDefaultImages() {
       // 1. Preload Gorilla
       try {
-        const response = await fetch('./default.png');
+        const response = await fetch('./g.png');
         if (response.ok) {
           preloadedImages.gorilla.blob = await response.blob();
           // Set initial preview using Gorilla
@@ -1089,7 +1089,7 @@
 
       // 2. Preload Doraemon
       try {
-        const response = await fetch('./doraemon.png');
+        const response = await fetch('./d.png');
         if (response.ok) {
           preloadedImages.doraemon.blob = await response.blob();
         }
@@ -1318,7 +1318,7 @@
       // Ensure we have a file to work with (either user-uploaded, or fallback preloaded blob)
       let uploadTarget = selectedFile;
       let isPreload = isUsingPreload;
-      let preloadName = activePreloadKey === 'gorilla' ? 'default.png' : 'doraemon.png';
+      let preloadName = activePreloadKey === 'gorilla' ? 'g.png' : 'd.png';
 
       if (!uploadTarget) {
         if (isPreload && preloadedImages[activePreloadKey].blob) {
@@ -1350,9 +1350,9 @@
         // Update loading text
         showLoading("Generating custom QR Code...");
         
-        // Build viewer route link using correct origin (IP for local, public domain for cloud)
+        // Build link DIRECTLY to the image file (prevents flash of website, opens image natively)
         const baseOrigin = isLocalEnv ? `http://${serverIp}:${serverPort}` : `${window.location.protocol}//${window.location.host}`;
-        const viewerLink = `${baseOrigin}/index.html#view?img=${encodeURIComponent(imageUrl)}`;
+        const viewerLink = `${baseOrigin}/${imageUrl}`;
         
         // Draw the QR Code using qrcode.js
         generateQRCode(viewerLink);
@@ -1436,9 +1436,9 @@
         text: targetUrl,
         width: 256,
         height: 256,
-        colorDark: "#090a0f", // Dark theme matches primary background
+        colorDark: "#000000", // Solid black for maximum contrast
         colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        correctLevel: QRCode.CorrectLevel.M // Medium error correction (simpler blocks, easier to scan)
       });
     }
 
