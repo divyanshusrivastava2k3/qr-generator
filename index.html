@@ -1464,15 +1464,36 @@
       // Find element to draw from
       const canvas = document.querySelector("#qrcode canvas");
       const img = document.querySelector("#qrcode img");
-      let sourceUrl = "";
+      let sourceElement = null;
 
       if (canvas) {
-        sourceUrl = canvas.toDataURL("image/png");
+        sourceElement = canvas;
       } else if (img && img.src) {
-        sourceUrl = img.src;
+        sourceElement = img;
       }
 
-      if (sourceUrl) {
+      if (sourceElement) {
+        // Create a new canvas in memory to add a white quiet zone border
+        const borderCanvas = document.createElement("canvas");
+        const ctx = borderCanvas.getContext("2d");
+        
+        const qrWidth = 256;
+        const qrHeight = 256;
+        const margin = 30; // 30px white border for Google Lens detection
+        
+        borderCanvas.width = qrWidth + (margin * 2);
+        borderCanvas.height = qrHeight + (margin * 2);
+        
+        // Fill white background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, borderCanvas.width, borderCanvas.height);
+        
+        // Draw the original QR code centered
+        ctx.drawImage(sourceElement, margin, margin, qrWidth, qrHeight);
+        
+        // Export as PNG
+        const sourceUrl = borderCanvas.toDataURL("image/png");
+
         const downloadAnchor = document.createElement("a");
         downloadAnchor.href = sourceUrl;
         downloadAnchor.download = "image_viewer_qrcode.png";
