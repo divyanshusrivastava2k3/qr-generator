@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "default.png", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/default.png", "dest": "/default.png" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

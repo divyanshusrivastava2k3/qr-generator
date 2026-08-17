@@ -934,19 +934,33 @@
     let serverIp = window.location.hostname;
     let serverPort = window.location.port || 3000;
 
+    // Detect environment (local vs cloud production like Vercel)
+    const isLocalEnv = window.location.hostname === "localhost" || 
+                       window.location.hostname === "127.0.0.1" || 
+                       window.location.hostname.startsWith("192.168.") || 
+                       window.location.hostname.startsWith("10.") || 
+                       window.location.hostname.startsWith("172.") || 
+                       window.location.hostname.endsWith(".local");
+
     /* ==========================================================================
        1. Setup and Preloading Default Image
        ========================================================================== */
     window.addEventListener("DOMContentLoaded", () => {
-      // Fetch server network info to get actual host IP
-      fetch('/api/info')
-        .then(res => res.json())
-        .then(info => {
-          serverIp = info.localIp;
-          serverPort = info.port;
-          console.log(`Resolved local IP: ${serverIp}:${serverPort}`);
-        })
-        .catch(err => console.error("Could not fetch server network info:", err));
+      // Fetch server network info only when running in a local environment
+      if (isLocalEnv) {
+        fetch('/api/info')
+          .then(res => res.json())
+          .then(info => {
+            serverIp = info.localIp;
+            serverPort = info.port;
+            console.log(`Resolved local IP: ${serverIp}:${serverPort}`);
+          })
+          .catch(err => console.error("Could not fetch server network info:", err));
+      } else {
+        // In public/cloud hosting, use current origin hostname & port
+        serverIp = window.location.hostname;
+        serverPort = window.location.port;
+      }
 
       // Initialize API key from local storage or embedded constant
       const savedKey = localStorage.getItem("imgbb_api_key");
@@ -1198,7 +1212,15 @@
       }
 
       // Check ImgBB API Key status
-      const useLocalFlow = !activeKey;
+      if (!isLocalEnv && !activeKey) {
+        showError("Missing ImgBB API Key. On public hosting like Vercel, an API key is required to upload and host images. Please open 'API Settings' above, enter a free API Key, and try again.");
+        if (!settingsContent.classList.contains("expanded")) {
+          settingsToggle.click(); // Expand settings to guide user
+        }
+        return;
+      }
+
+      const useLocalFlow = isLocalEnv && !activeKey;
 
       // Start Loading Overlay
       showLoading(useLocalFlow ? "Processing and saving image locally..." : "Uploading image securely to ImgBB...");
@@ -1219,8 +1241,8 @@
         // Update loading text
         showLoading("Generating custom QR Code...");
         
-        // Build viewer route link using local IP address (critical for mobile scanning)
-        const baseOrigin = `http://${serverIp}:${serverPort}`;
+        // Build viewer route link using correct origin (IP for local, public domain for cloud)
+        const baseOrigin = useLocalFlow ? `http://${serverIp}:${serverPort}` : `${window.location.protocol}//${window.location.host}`;
         const viewerLink = `${baseOrigin}/index.html#view?img=${encodeURIComponent(imageUrl)}`;
         
         // Draw the QR Code using qrcode.js
