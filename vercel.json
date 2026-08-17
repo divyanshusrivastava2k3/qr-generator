@@ -4,11 +4,13 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
     { "src": "g.png", "use": "@vercel/static" },
-    { "src": "d.png", "use": "@vercel/static" }
+    { "src": "d.png", "use": "@vercel/static" },
+    { "src": "d2.png", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/g.png", "dest": "/g.png" },
     { "src": "/d.png", "dest": "/d.png" },
+    { "src": "/d2.png", "dest": "/d2.png" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

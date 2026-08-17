@@ -825,7 +825,10 @@
             🦍 Gorilla
           </button>
           <button type="button" class="preloaded-btn" id="btn-preload-doraemon">
-            🐱 Doraemon
+            🐱 Doraemon 1
+          </button>
+          <button type="button" class="preloaded-btn" id="btn-preload-doraemon2">
+            🐱 Doraemon 2
           </button>
         </div>
       </div>
@@ -970,6 +973,11 @@
         url: './d.png',
         name: 'd.png',
         blob: null
+      },
+      doraemon2: {
+        url: './d2.png',
+        name: 'd2.png',
+        blob: null
       }
     };
     let activePreloadKey = 'gorilla';
@@ -1003,6 +1011,7 @@
     const btnTestLink = document.getElementById("btn-test-link");
     const btnPreloadGorilla = document.getElementById("btn-preload-gorilla");
     const btnPreloadDoraemon = document.getElementById("btn-preload-doraemon");
+    const btnPreloadDoraemon2 = document.getElementById("btn-preload-doraemon2");
 
     // Viewer Screen Elements
     const generatorContainer = document.getElementById("generator-container");
@@ -1054,18 +1063,30 @@
       // Preload the default images
       preloadDefaultImages();
 
+      // Helper to handle button active state toggling
+      function resetPreloadBtnStates(activeBtn) {
+        [btnPreloadGorilla, btnPreloadDoraemon, btnPreloadDoraemon2].forEach(btn => {
+          btn.classList.remove("active");
+        });
+        activeBtn.classList.add("active");
+      }
+
       // Bind preloaded buttons click events
       btnPreloadGorilla.addEventListener("click", () => {
-        btnPreloadGorilla.classList.add("active");
-        btnPreloadDoraemon.classList.remove("active");
+        resetPreloadBtnStates(btnPreloadGorilla);
         loadPreload('gorilla');
         resultsContainer.style.display = "none";
       });
 
       btnPreloadDoraemon.addEventListener("click", () => {
-        btnPreloadDoraemon.classList.add("active");
-        btnPreloadGorilla.classList.remove("active");
+        resetPreloadBtnStates(btnPreloadDoraemon);
         loadPreload('doraemon');
+        resultsContainer.style.display = "none";
+      });
+
+      btnPreloadDoraemon2.addEventListener("click", () => {
+        resetPreloadBtnStates(btnPreloadDoraemon2);
+        loadPreload('doraemon2');
         resultsContainer.style.display = "none";
       });
 
@@ -1073,7 +1094,7 @@
       handleRouting();
     });
 
-    // Preload both static assets
+    // Preload static assets
     async function preloadDefaultImages() {
       // 1. Preload Gorilla
       try {
@@ -1087,14 +1108,24 @@
         console.error("Error preloading Gorilla:", error);
       }
 
-      // 2. Preload Doraemon
+      // 2. Preload Doraemon 1
       try {
         const response = await fetch('./d.png');
         if (response.ok) {
           preloadedImages.doraemon.blob = await response.blob();
         }
       } catch (error) {
-        console.error("Error preloading Doraemon:", error);
+        console.error("Error preloading Doraemon 1:", error);
+      }
+
+      // 3. Preload Doraemon 2
+      try {
+        const response = await fetch('./d2.png');
+        if (response.ok) {
+          preloadedImages.doraemon2.blob = await response.blob();
+        }
+      } catch (error) {
+        console.error("Error preloading Doraemon 2:", error);
       }
     }
 
@@ -1318,7 +1349,13 @@
       // Ensure we have a file to work with (either user-uploaded, or fallback preloaded blob)
       let uploadTarget = selectedFile;
       let isPreload = isUsingPreload;
-      let preloadName = activePreloadKey === 'gorilla' ? 'g.png' : 'd.png';
+      
+      let preloadName = 'g.png';
+      if (activePreloadKey === 'doraemon') {
+        preloadName = 'd.png';
+      } else if (activePreloadKey === 'doraemon2') {
+        preloadName = 'd2.png';
+      }
 
       if (!uploadTarget) {
         if (isPreload && preloadedImages[activePreloadKey].blob) {
