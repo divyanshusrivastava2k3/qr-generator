@@ -3,1288 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📸 Image QR Code Generator</title>
-  
-  <!-- Fonts (bundled locally — no external CDN) -->
+  <title>Image QR Code Generator</title>
   <link href="./fonts/fonts.css" rel="stylesheet">
-  
-  <!-- QRCode.js Library (bundled locally — no external CDN) -->
   <script src="./vendor/qrcode.min.js"></script>
-
   <style>
-    /* Design Tokens */
     :root {
-      --bg-primary: #090a0f;
-      --bg-secondary: #121420;
-      --glass-bg: rgba(18, 20, 32, 0.7);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-border-hover: rgba(255, 255, 255, 0.15);
-      --text-primary: #f3f4f6;
-      --text-secondary: #9ca3af;
+      --bg: #090a0f;
+      --card: rgba(18, 20, 32, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
       --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --primary-glow: rgba(99, 102, 241, 0.4);
-      --accent: #a855f7;
-      --accent-glow: rgba(168, 85, 247, 0.4);
-      --success: #10b981;
+      --primary-2: #a855f7;
       --error: #ef4444;
-      --font-display: 'Outfit', sans-serif;
-      --font-body: 'Inter', sans-serif;
+      --ok: #10b981;
     }
-
-    /* Global Reset & Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      scrollbar-width: thin;
-      scrollbar-color: var(--glass-border) transparent;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      font-family: var(--font-body);
-      min-height: 100vh;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 2.5rem 1.25rem;
     }
-
-    /* Ambient Background Glows */
-    body::before {
-      content: '';
-      position: absolute;
-      top: -200px;
-      left: -200px;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-      z-index: -1;
-      filter: blur(80px);
-      pointer-events: none;
+    .wrap { width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 1.75rem; }
+    h1 {
+      font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 2.25rem;
+      text-align: center; background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     }
-
-    body::after {
-      content: '';
-      position: absolute;
-      bottom: -200px;
-      right: -200px;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-      z-index: -1;
-      filter: blur(80px);
-      pointer-events: none;
-    }
-
-    /* Typography */
-    h1, h2, h3, h4 {
-      font-family: var(--font-display);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    a {
-      color: var(--primary);
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    a:hover {
-      color: var(--accent);
-    }
-
-    /* Layout Containers */
-    .container {
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    /* Header Styling */
-    header {
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .app-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-    }
-
-    .app-subtitle {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      font-weight: 400;
-    }
-
-    /* Glassmorphic Card */
+    .sub { text-align: center; color: var(--muted); margin-top: -1rem; }
     .card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 2rem;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 1.75rem; backdrop-filter: blur(16px);
     }
-
-    .card:hover {
-      border-color: var(--glass-border-hover);
+    .drop {
+      border: 2px dashed var(--border); border-radius: 16px; padding: 2.75rem 1.5rem;
+      text-align: center; cursor: pointer; position: relative;
+      transition: border-color .2s, background .2s; display: flex; flex-direction: column; gap: 1rem; align-items: center;
     }
-
-    /* Settings Panel */
-    .settings-toggle-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      cursor: pointer;
-      margin: 0 auto;
-      padding: 0.5rem 1rem;
-      border-radius: 30px;
-      border: 1px solid transparent;
-      transition: all 0.2s ease;
-    }
-
-    .settings-toggle-btn:hover {
-      color: var(--text-primary);
-      background: rgba(255, 255, 255, 0.05);
-      border-color: var(--glass-border);
-    }
-
-    .settings-toggle-btn svg {
-      transition: transform 0.3s ease;
-    }
-
-    .settings-toggle-btn.active svg {
-      transform: rotate(45deg);
-    }
-
-    .settings-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-      opacity: 0;
-      margin-top: 0.5rem;
-    }
-
-    .settings-content.expanded {
-      max-height: 250px;
-      opacity: 1;
-    }
-
-    .settings-inner {
-      padding: 1.25rem;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 12px;
-      border: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .form-label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .text-input {
-      width: 100%;
-      background: rgba(9, 10, 15, 0.8);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      padding: 0.75rem 2.5rem 0.75rem 1rem;
-      color: var(--text-primary);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    .text-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-    }
-
-    .toggle-visibility-btn {
-      position: absolute;
-      right: 0.75rem;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .toggle-visibility-btn:hover {
-      color: var(--text-primary);
-    }
-
-    .settings-info {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Drag & Drop Upload Zone */
-    .upload-zone {
-      border: 2px dashed var(--glass-border);
-      border-radius: 16px;
-      padding: 3rem 2rem;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-      background: rgba(255, 255, 255, 0.01);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.25rem;
-    }
-
-    .upload-zone:hover, .upload-zone.dragover {
-      border-color: var(--primary);
-      background: rgba(99, 102, 241, 0.03);
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.05);
-    }
-
-    .upload-icon-wrapper {
-      width: 70px;
-      height: 70px;
-      background: rgba(99, 102, 241, 0.1);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary);
-      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.1);
-      transition: transform 0.3s ease;
-    }
-
-    .upload-zone:hover .upload-icon-wrapper {
-      transform: scale(1.05);
-    }
-
-    .upload-text {
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-
-    .upload-subtext {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-    }
-
-    .file-input {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    /* Image Preview Section */
-    .preview-container {
-      display: none;
-      flex-direction: column;
-      gap: 1rem;
-      width: 100%;
-      margin-top: 0.5rem;
-    }
-
-    .preview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .preview-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .preview-remove-btn {
-      background: transparent;
-      border: none;
-      color: var(--error);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      transition: opacity 0.2s ease;
-    }
-
-    .preview-remove-btn:hover {
-      opacity: 0.8;
-    }
-
-    .preview-box {
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      max-height: 280px;
-      position: relative;
-    }
-
-    .preview-img {
-      max-width: 100%;
-      max-height: 280px;
-      object-fit: contain;
-      display: block;
-    }
-
-    .preview-details {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
-      padding: 1.5rem 1rem 0.75rem 1rem;
-      font-size: 0.8rem;
-      color: var(--text-primary);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* Generate Button */
+    .drop:hover, .drop.drag { border-color: var(--primary); background: rgba(99,102,241,.04); }
+    .drop .ico { width: 64px; height: 64px; border-radius: 50%; background: rgba(99,102,241,.12);
+      display: flex; align-items: center; justify-content: center; color: var(--primary); }
+    .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .preview { display: none; flex-direction: column; gap: 1rem; }
+    .preview .box { border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+      background: rgba(0,0,0,.2); display: flex; align-items: center; justify-content: center; max-height: 300px; }
+    .preview img { max-width: 100%; max-height: 300px; object-fit: contain; }
+    .prow { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; color: var(--muted); }
     .btn {
-      width: 100%;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      border: none;
-      border-radius: 10px;
-      padding: 1rem 2rem;
-      color: #ffffff;
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+      width: 100%; border: none; border-radius: 10px; padding: 1rem; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 1.05rem; color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 4px 15px rgba(99,102,241,.25); transition: transform .2s;
     }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .remove { background: none; border: none; color: var(--error); cursor: pointer; font-weight: 500; }
+    .alert { display: none; padding: .9rem 1rem; border-radius: 12px; font-size: .85rem; line-height: 1.4; }
+    .alert.info { background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.18); color: #c7d2fe; display: block; }
+    .alert.err { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.18); color: #fca5a5; }
+    .results { display: none; flex-direction: column; gap: 1.5rem; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 640px) { .grid { grid-template-columns: 1.2fr 1fr; } }
+    .qrcard { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+    .qrwrap { background: #fff; border-radius: 12px; padding: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,.4); }
+    .qrwrap canvas, .qrwrap img { display: block; width: 100%; max-width: 200px; height: auto; }
+    .actions { display: flex; gap: .75rem; width: 100%; }
+    .sec { flex: 1; background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: .75rem; font-size: .9rem; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: .4rem; }
+    .linkcard { background: rgba(0,0,0,.2); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .copyrow { display: flex; gap: .5rem; }
+    .copyrow input { flex: 1; background: rgba(9,10,15,.8); border: 1px solid var(--border); border-radius: 8px;
+      padding: .6rem .8rem; color: var(--text); font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .copybtn { background: var(--primary); border: none; color: #fff; border-radius: 8px; padding: 0 1rem; cursor: pointer; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(9,10,15,.85); backdrop-filter: blur(8px);
+      z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 1.5rem; }
+    .spinner { width: 56px; height: 56px; border: 4px solid rgba(99,102,241,.1); border-left-color: var(--primary);
+      border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    footer { color: var(--muted); font-size: .78rem; text-align: center; padding-top: 1rem; }
 
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-      filter: brightness(1.1);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn:disabled {
-      background: var(--glass-border);
-      color: var(--text-secondary);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    /* Loading Overlay */
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(9, 10, 15, 0.85);
-      backdrop-filter: blur(8px);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid rgba(99, 102, 241, 0.1);
-      border-left-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
-    }
-
-    .loading-status {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 600;
-      background: linear-gradient(135deg, #ffffff 0%, var(--text-secondary) 100%);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Results Section */
-    .results-container {
-      display: none;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .results-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (min-width: 640px) {
-      .results-grid {
-        grid-template-columns: 1.2fr 1fr;
-      }
-    }
-
-    .qr-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.25rem;
-      padding: 2rem;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-    }
-
-    .qr-code-wrapper {
-      padding: 1rem;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .qr-code-wrapper canvas, .qr-code-wrapper img {
-      display: block;
-      width: 100%;
-      max-width: 200px;
-      height: auto;
-    }
-
-    .qr-actions {
-      display: flex;
-      gap: 0.75rem;
-      width: 100%;
-    }
-
-    .btn-secondary {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      color: var(--text-primary);
-      font-size: 0.95rem;
-      padding: 0.75rem 1rem;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--glass-border-hover);
-      box-shadow: none;
-      transform: none;
-    }
-
-    .link-card {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1.5rem;
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-    }
-
-    .link-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-secondary);
-    }
-
-    .copy-input-group {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .copy-input {
-      flex-grow: 1;
-      background: rgba(9, 10, 15, 0.8);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      padding: 0.6rem 0.8rem;
-      color: var(--text-primary);
-      font-size: 0.85rem;
-      outline: none;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .btn-copy {
-      background: var(--primary);
-      border: none;
-      color: white;
-      border-radius: 8px;
-      padding: 0 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s ease;
-    }
-
-    .btn-copy:hover {
-      background: var(--primary-hover);
-    }
-
-    .viewer-preview {
-      margin-top: auto;
-      background: rgba(99, 102, 241, 0.05);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: 12px;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .viewer-preview-icon {
-      color: var(--accent);
-    }
-
-    .viewer-preview-text h4 {
-      font-size: 0.9rem;
-      margin-bottom: 0.15rem;
-    }
-
-    .viewer-preview-text p {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      line-height: 1.3;
-    }
-
-    /* Info Alerts */
-    .alert {
-      display: flex;
-      gap: 0.75rem;
-      padding: 1rem;
-      border-radius: 12px;
-      font-size: 0.85rem;
-      line-height: 1.4;
-    }
-
-    .alert-info {
-      background: rgba(99, 102, 241, 0.08);
-      border: 1px solid rgba(99, 102, 241, 0.15);
-      color: #c7d2fe;
-    }
-
-    .alert-error {
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      color: #fca5a5;
-      display: none;
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 2rem 0;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-    }
-
-    /* FULL SCREEN IMAGE VIEWER SCREEN */
-    #viewer-screen {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #000000;
-      z-index: 99999;
-      overflow: hidden;
-      margin: 0;
-      padding: 0;
-      border: none;
-      box-sizing: border-box;
-      
-      /* Flex layout to center image */
-      justify-content: center;
-      align-items: center;
-    }
-
-    #viewer-image {
-      max-width: 100vw;
-      max-height: 100vh;
-      width: auto;
-      height: auto;
-      object-fit: contain;
-      border: none;
-      margin: 0;
-      padding: 0;
-      display: block;
-      box-sizing: border-box;
-    }
-
-    /* Semi-transparent back button overlay on the viewer */
-    .viewer-back-btn {
-      position: fixed;
-      top: 1.5rem;
-      left: 1.5rem;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.3s ease, background-color 0.2s ease, transform 0.2s ease;
-      z-index: 100000;
-    }
-
-    .viewer-back-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
-    }
-
-    /* Show back button temporarily on mousemove/tap */
-    #viewer-screen:hover .viewer-back-btn, 
-    .viewer-back-btn.show-hud {
-      opacity: 1;
-    }
+    /* Borderless fullscreen viewer */
+    #viewer { display: none; position: fixed; inset: 0; background: #000; z-index: 99999;
+      align-items: center; justify-content: center; }
+    #viewer img { max-width: 100vw; max-height: 100vh; object-fit: contain; }
+    .back { position: fixed; top: 1.5rem; left: 1.5rem; width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.15);
+      color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .3s; z-index: 100000; }
+    #viewer:hover .back, .back.show { opacity: 1; }
   </style>
 </head>
 <body>
-
-  <!-- Main Generator Container -->
-  <div class="container" id="generator-container">
+  <div class="wrap" id="app">
     <header>
-      <h1 class="app-title">📸 Image QR Code Generator</h1>
-      <p class="app-subtitle">Upload an image and generate a dynamic QR code for a clean full-screen viewing experience.</p>
+      <h1>📸 Image QR Code Generator</h1>
+      <p class="sub">Upload any image, get a QR code that opens it fullscreen.</p>
     </header>
 
-    <!-- Main Generator Card -->
-    <div class="card" style="display: flex; flex-direction: column; gap: 1.5rem;">
-
-      <!-- Upload Zone -->
-      <div class="upload-zone" id="drop-zone">
-        <div class="upload-icon-wrapper">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+    <div class="card">
+      <div class="drop" id="drop">
+        <div class="ico">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-          <p class="upload-text" id="upload-main-text">Drag & drop your image here</p>
-          <p class="upload-subtext">Supports PNG, JPG, JPEG, GIF, WebP (Max 32MB)</p>
+        <div>
+          <p style="font-weight:600;">Drag &amp; drop your image here</p>
+          <p class="sub">or click to browse · PNG, JPG, GIF, WebP · Max 32MB</p>
         </div>
-        <p class="upload-subtext">or click to browse local files</p>
-        <input type="file" class="file-input" id="file-selector" accept="image/*">
+        <input type="file" id="file" accept="image/*">
       </div>
 
-      <!-- File Preview Box -->
-      <div class="preview-container" id="preview-container">
-        <div class="preview-header">
-          <span class="preview-title" id="preview-header-title">Selected Image</span>
-          <button class="preview-remove-btn" id="remove-file-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            <span>Remove</span>
-          </button>
+      <div class="preview" id="preview">
+        <div class="box"><img id="pimg" alt="preview"></div>
+        <div class="prow">
+          <span id="pname">image.png</span>
+          <span><span id="psize">0 KB</span> · <button class="remove" id="remove">Remove</button></span>
         </div>
-        <div class="preview-box">
-          <img src="" alt="Selected Preview" class="preview-img" id="preview-image">
-          <div class="preview-details">
-            <span id="preview-filename">image.png</span>
-            <span id="preview-filesize">0 KB</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Submit Button -->
-      <button class="btn" id="btn-generate">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
-        <span>Generate Image QR Code</span>
-      </button>
-
-      <!-- Status Alert Block -->
-      <div class="alert alert-info" id="alert-info">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        <span id="info-message">Drop or browse any image, then click "Generate" to create a QR code for it.</span>
-      </div>
-
-      <div class="alert alert-error" id="alert-error">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <span id="error-message">Error message details appear here.</span>
-      </div>
-
-    </div>
-
-    <!-- Results Card (Displays after QR code is generated) -->
-    <div class="card results-container" id="results-container">
-      <h2 style="font-size: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem;">🎉 QR Code Generated!</h2>
-      
-      <div class="results-grid">
-        
-        <!-- QR Display Panel -->
-        <div class="qr-card">
-          <div class="qr-code-wrapper" id="qrcode"></div>
-          <div class="qr-actions">
-            <button class="btn btn-secondary" id="btn-download-qr" title="Download QR code as PNG">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Save QR
-            </button>
-            <a href="" target="_blank" class="btn btn-secondary" id="btn-test-link" style="display: flex; align-items: center; justify-content: center;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              Test View
-            </a>
-          </div>
-        </div>
-
-        <!-- Details Panel -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <div class="link-card">
-            <span class="link-label">Image Viewer Link (QR Destination)</span>
-            <div class="copy-input-group">
-              <input type="text" class="copy-input" id="share-link-input" readonly>
-              <button class="btn-copy" id="btn-copy-link" title="Copy Link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-              </button>
-            </div>
-            
-            <div class="viewer-preview">
-              <div class="viewer-preview-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-              </div>
-              <div class="viewer-preview-text">
-                <h4>Dynamic Mobile Viewer</h4>
-                <p>This links to our custom viewer. The image is displayed fullscreen with no headers or borders on a solid black background.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
-    <footer>
-      <p>&copy; 2026 Image QR Code Generator. Images are served locally from your own machine — no third-party upload required.</p>
-    </footer>
+    <button class="btn" id="gen">Generate QR Code</button>
+
+    <div class="alert info" id="info">Drop or browse an image, then click Generate.</div>
+    <div class="alert err" id="err"></div>
+
+    <div class="results" id="results">
+      <h2 style="font-size:1.4rem; border-bottom:1px solid var(--border); padding-bottom:.6rem;">🎉 QR Code Generated!</h2>
+      <div class="grid">
+        <div class="qrcard">
+          <div class="qrwrap" id="qrcode"></div>
+          <div class="actions">
+            <button class="sec" id="dl">⬇ Save QR</button>
+            <a class="sec" id="test" href="" target="_blank" rel="noopener">↗ Test View</a>
+          </div>
+        </div>
+        <div class="linkcard">
+          <span style="font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);">Image Viewer Link</span>
+          <div class="copyrow">
+            <input id="link" readonly>
+            <button class="copybtn" id="copy">Copy</button>
+          </div>
+          <p style="font-size:.78rem; color:var(--muted); line-height:1.4;">This link opens your image fullscreen — no headers, no borders, solid black background.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>Self-hosted. Images are stored on your own deployment — no third-party service involved.</footer>
   </div>
 
-  <!-- Loading State Panel -->
-  <div class="loading-overlay" id="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-status" id="loading-text">Processing image...</div>
-  </div>
+  <div class="overlay" id="overlay"><div class="spinner"></div><div>Processing…</div></div>
 
-  <!-- Dynamic Fullscreen Borderless Viewer (Activated via Hash Route) -->
-  <div id="viewer-screen">
-    <!-- Back Button HUD element -->
-    <button class="viewer-back-btn" id="viewer-back-button" title="Back to Generator">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+  <div id="viewer">
+    <button class="back" id="back" title="Back">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
     </button>
-    <img id="viewer-image" src="" alt="Fullscreen image rendering">
+    <img id="vimg" alt="fullscreen">
   </div>
 
   <script>
-    // State Variables
-    let selectedFile = null;
+    let selected = null;
 
-    // DOM Elements
-    const dropZone = document.getElementById("drop-zone");
-    const fileSelector = document.getElementById("file-selector");
-    const previewContainer = document.getElementById("preview-container");
-    const previewImage = document.getElementById("preview-image");
-    const previewFilename = document.getElementById("preview-filename");
-    const previewFilesize = document.getElementById("preview-filesize");
-    const removeFileBtn = document.getElementById("remove-file-btn");
-    const btnGenerate = document.getElementById("btn-generate");
-    const loadingOverlay = document.getElementById("loading-overlay");
-    const loadingText = document.getElementById("loading-text");
-    const alertInfo = document.getElementById("alert-info");
-    const infoMessage = document.getElementById("info-message");
-    const alertError = document.getElementById("alert-error");
-    const errorMessage = document.getElementById("error-message");
-    
-    // Results DOM Elements
-    const resultsContainer = document.getElementById("results-container");
-    const shareLinkInput = document.getElementById("share-link-input");
-    const btnCopyLink = document.getElementById("btn-copy-link");
-    const btnDownloadQr = document.getElementById("btn-download-qr");
-    const btnTestLink = document.getElementById("btn-test-link");
+    const drop = document.getElementById('drop');
+    const fileInput = document.getElementById('file');
+    const preview = document.getElementById('preview');
+    const pimg = document.getElementById('pimg');
+    const pname = document.getElementById('pname');
+    const psize = document.getElementById('psize');
+    const removeBtn = document.getElementById('remove');
+    const genBtn = document.getElementById('gen');
+    const info = document.getElementById('info');
+    const errEl = document.getElementById('err');
+    const results = document.getElementById('results');
+    const qrcode = document.getElementById('qrcode');
+    const dlBtn = document.getElementById('dl');
+    const testLink = document.getElementById('test');
+    const linkInput = document.getElementById('link');
+    const copyBtn = document.getElementById('copy');
+    const overlay = document.getElementById('overlay');
+    const viewer = document.getElementById('viewer');
+    const vimg = document.getElementById('vimg');
+    const backBtn = document.getElementById('back');
+    const app = document.getElementById('app');
 
-    // Viewer Screen Elements
-    const generatorContainer = document.getElementById("generator-container");
-    const viewerScreen = document.getElementById("viewer-screen");
-    const viewerImage = document.getElementById("viewer-image");
-    const viewerBackButton = document.getElementById("viewer-back-button");
+    function showErr(m){ errEl.textContent = m; errEl.style.display = 'block'; info.style.display = 'none'; }
+    function showInfo(m){ info.textContent = m; info.style.display = 'block'; errEl.style.display = 'none'; }
+    function fmt(b){ if(!b) return '0 KB'; const k=1024, i=Math.floor(Math.log(b)/Math.log(k)); return (b/Math.pow(k,i)).toFixed(2)+' '+'KMGTP'[i]+'B'; }
 
-    // Global server variables with local fallbacks
-    let serverIp = window.location.hostname;
-    let serverPort = window.location.port || 3000;
+    // ---- drag & drop ----
+    ['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('drag');}));
+    ['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('drag');}));
+    drop.addEventListener('drop', ev=>{ if(ev.dataTransfer.files.length) handle(ev.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', ev=>{ if(ev.target.files.length) handle(ev.target.files[0]); });
 
-    // Detect environment (local vs cloud production like Vercel)
-    const isLocalEnv = window.location.hostname === "localhost" || 
-                       window.location.hostname === "127.0.0.1" || 
-                       window.location.hostname.startsWith("192.168.") || 
-                       window.location.hostname.startsWith("10.") || 
-                       window.location.hostname.startsWith("172.") || 
-                       window.location.hostname.endsWith(".local");
-
-    /* ==========================================================================
-       1. Setup
-       ========================================================================== */
-    window.addEventListener("DOMContentLoaded", () => {
-      // Fetch server network info only when running in a local environment
-      if (isLocalEnv) {
-        fetch('/api/info')
-          .then(res => res.json())
-          .then(info => {
-            serverIp = info.localIp;
-            serverPort = info.port;
-            console.log(`Resolved local IP: ${serverIp}:${serverPort}`);
-          })
-          .catch(err => console.error("Could not fetch server network info:", err));
-      } else {
-        // In public/cloud hosting, use current origin hostname & port
-        serverIp = window.location.hostname;
-        serverPort = window.location.port;
-      }
-
-      // Route initially
-      handleRouting();
-    });
-
-    /* ==========================================================================
-       2. Hash-Routing / Screen Toggle (Dynamic Fullscreen Viewer)
-       ========================================================================== */
-    function handleRouting() {
-      const hash = window.location.hash;
-      
-      if (hash.startsWith("#view?")) {
-        // Parse parameters
-        const urlParams = new URLSearchParams(hash.slice(6));
-        const imageUrl = urlParams.get("img");
-
-        if (imageUrl) {
-          showViewer(imageUrl);
-        } else {
-          // Bad parameters, fallback
-          window.location.hash = "";
-          showGenerator();
-        }
-      } else {
-        showGenerator();
-      }
+    function handle(file){
+      if(!file.type.startsWith('image/')){ showErr('Please choose an image file.'); return; }
+      selected = file;
+      const r = new FileReader();
+      r.onload = e => { pimg.src = e.target.result; pname.textContent = file.name; psize.textContent = fmt(file.size);
+        drop.style.display='none'; preview.style.display='flex'; };
+      r.readAsDataURL(file);
+      showInfo("Image loaded. Click Generate to create its QR code.");
     }
 
-    window.addEventListener("hashchange", handleRouting);
-
-    function showViewer(imageUrl) {
-      // Hide all standard contents and glows
-      generatorContainer.style.display = "none";
-      document.body.style.backgroundColor = "#000000";
-      
-      // Set image source and trigger display
-      viewerImage.src = imageUrl;
-      viewerScreen.style.display = "flex";
-
-      // Hide cursor and HUD controls after inactivity
-      showHud();
-    }
-
-    function showGenerator() {
-      // Hide viewer and restore layout
-      viewerScreen.style.display = "none";
-      viewerImage.src = "";
-      document.body.style.backgroundColor = "var(--bg-primary)";
-      document.body.style.cursor = "default";
-      generatorContainer.style.display = "flex";
-    }
-
-    // HUD Auto-hide system for completely clean visual page
-    let hudTimeout;
-    function showHud() {
-      viewerBackButton.classList.add("show-hud");
-      document.body.style.cursor = "default";
-      
-      clearTimeout(hudTimeout);
-      hudTimeout = setTimeout(() => {
-        viewerBackButton.classList.remove("show-hud");
-        // Hide cursor on the black viewer screen for full immersion
-        if (window.location.hash.startsWith("#view?")) {
-          document.body.style.cursor = "none";
-        }
-      }, 3000);
-    }
-
-    // Register event listeners once globally
-    window.addEventListener("mousemove", () => {
-      if (window.location.hash.startsWith("#view?")) showHud();
-    });
-    window.addEventListener("touchstart", () => {
-      if (window.location.hash.startsWith("#view?")) showHud();
-    });
-    window.addEventListener("keydown", () => {
-      if (window.location.hash.startsWith("#view?")) showHud();
+    removeBtn.addEventListener('click', ()=>{
+      selected = null; fileInput.value=''; pimg.src='';
+      drop.style.display='flex'; preview.style.display='none';
+      results.style.display='none'; showInfo('Drop or browse an image to start.');
     });
 
-    // Back to generator button in viewer
-    viewerBackButton.addEventListener("click", () => {
-      window.location.hash = "";
-    });
-
-    /* ==========================================================================
-       3. Upload Handling / Drag & Drop
-       ========================================================================== */
-    ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
-      dropZone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    ["dragenter", "dragover"].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => dropZone.classList.add("dragover"), false);
-    });
-
-    ["dragleave", "drop"].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => dropZone.classList.remove("dragover"), false);
-    });
-
-    dropZone.addEventListener("drop", handleDrop, false);
-
-    function handleDrop(e) {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length) {
-        processSelectedFile(files[0]);
-      }
-    }
-
-    fileSelector.addEventListener("change", (e) => {
-      const files = e.target.files;
-      if (files.length) {
-        processSelectedFile(files[0]);
-      }
-    });
-
-    function processSelectedFile(file) {
-      if (!file.type.startsWith("image/")) {
-        showError("Invalid file type. Please select an image file.");
-        return;
-      }
-      
-      selectedFile = file;
-
-      // Render Preview
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        displayImagePreview(e.target.result, file.name, file.size);
-      };
-      reader.readAsDataURL(file);
-      hideError();
-      showInfo("Image loaded successfully. Click 'Generate' to upload and construct your QR Code.");
-    }
-
-    function displayImagePreview(src, filename, sizeBytes) {
-      previewImage.src = src;
-      previewFilename.textContent = filename;
-      previewFilesize.textContent = formatBytes(sizeBytes);
-      
-      // Toggle views
-      dropZone.style.display = "none";
-      previewContainer.style.display = "flex";
-    }
-
-    removeFileBtn.addEventListener("click", () => {
-      selectedFile = null;
-      previewImage.src = "";
-      fileSelector.value = "";
-
-      // Reset back to the drop zone — no default image to restore
-      dropZone.style.display = "flex";
-      previewContainer.style.display = "none";
-      showInfo("Please drop or browse an image file to start.");
-
-      // Hide results when image resets
-      resultsContainer.style.display = "none";
-    });
-
-    /* ==========================================================================
-       5. Image Upload & QR Code Generation Flow
-       ========================================================================== */
-    btnGenerate.addEventListener("click", async () => {
-      hideError();
-
-      // An image must be selected (we no longer ship default images)
-      if (!selectedFile) {
-        showError("Please select an image first — drop or browse any image, then generate.");
-        return;
-      }
-      const uploadTarget = selectedFile;
-
-      // Start Loading Overlay
-      showLoading("Processing and generating QR Code...");
-
+    // ---- generate ----
+    genBtn.addEventListener('click', async ()=>{
+      if(!selected){ showErr('Please select an image first.'); return; }
+      errEl.style.display='none';
+      overlay.style.display='flex';
       try {
-        // Upload to our OWN backend (local server.js or our Vercel serverless
-        // function). No third-party service involved.
-        const imageUrl = await uploadImageLocally(uploadTarget);
-
-        // Update loading text
-        showLoading("Generating custom QR Code...");
-
-        // Build the raw image URL first, then wrap it in the borderless
-        // fullscreen viewer route so scanning opens a clean, header-less view.
-        const baseOrigin = isLocalEnv ? `http://${serverIp}:${serverPort}` : `${window.location.protocol}//${window.location.host}`;
-        // imageUrl may be a bare filename ("uploaded-x.png") or an absolute path
-        // ("/api/image/uploaded-x.png"); join with the origin slash-safely.
-        const rawImageUrl = `${baseOrigin}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-        const viewerLink = `${baseOrigin}/#view?img=${encodeURIComponent(rawImageUrl)}`;
-        
-        // Draw the QR Code using qrcode.js
-        generateQRCode(viewerLink);
-        
-        // Setup details card elements
-        shareLinkInput.value = viewerLink;
-        btnTestLink.href = viewerLink;
-        
-        // Reveal results container
-        resultsContainer.style.display = "block";
-        resultsContainer.scrollIntoView({ behavior: 'smooth' });
-        
-        showInfo(`Success! QR Code pointing to your image has been generated successfully.`);
-
-      } catch (err) {
-        console.error("Operation failed:", err);
-        showError(err.message || "An unexpected error occurred during processing.");
-      } finally {
-        hideLoading();
-      }
-    });
-
-    async function uploadImageLocally(fileBlob) {
-      // Header values must be ISO-8859-1; filenames with non-Latin chars
-      // (Hindi, emoji, etc.) would throw. Encode to base64 to be safe.
-      const safeName = btoa(unescape(encodeURIComponent(fileBlob.name || "image.png")));
-      const response = await fetch('/api/upload', {
-        method: "POST",
-        headers: {
-          "Content-Type": fileBlob.type || "image/png",
-          "x-filename": safeName
-        },
-        body: fileBlob
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed. Status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success && result.url) {
-        // Local server (server.js) returns a bare filename like "uploaded-x.png".
-        // Our Vercel function returns an absolute path like "/api/image/uploaded-x.png".
-        // Either way, the caller prepends the origin, so a bare filename is what
-        // we want for the local case and a path is fine for Vercel (it already
-        // contains the leading slash and won't double-prefix).
-        let url = result.url;
-        if (isLocalEnv && !url.startsWith('/')) {
-          // strip any accidental leading slash; local file lives at root
-          url = url.replace(/^\/+/, '');
-        }
-        return url;
-      } else {
-        const errMsg = result.error || "Invalid response from upload server.";
-        throw new Error(`Upload error: ${errMsg}`);
-      }
-    }
-
-    function generateQRCode(targetUrl) {
-      const qrContainer = document.getElementById("qrcode");
-      qrContainer.innerHTML = ""; // Wipe former drawings
-
-      // Build target object
-      new QRCode(qrContainer, {
-        text: targetUrl,
-        width: 256,
-        height: 256,
-        colorDark: "#000000", // Solid black for maximum contrast
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M // Medium error correction (simpler blocks, easier to scan)
-      });
-    }
-
-    /* ==========================================================================
-       6. Clipboard copy & QR Code Downloader
-       ========================================================================== */
-    btnCopyLink.addEventListener("click", () => {
-      shareLinkInput.select();
-      shareLinkInput.setSelectionRange(0, 99999); // For mobile devices
-      
-      navigator.clipboard.writeText(shareLinkInput.value)
-        .then(() => {
-          const originalSvg = btnCopyLink.innerHTML;
-          btnCopyLink.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-          setTimeout(() => btnCopyLink.innerHTML = originalSvg, 2000);
-        })
-        .catch(err => {
-          console.error("Clipboard write failure:", err);
+        const safe = btoa(unescape(encodeURIComponent(selected.name || 'image.png')));
+        const res = await fetch('/api/upload', {
+          method:'POST',
+          headers:{ 'Content-Type': selected.type || 'image/png', 'x-filename': safe },
+          body: selected
         });
+        if(!res.ok) throw new Error('Upload failed. Status: '+res.status);
+        const data = await res.json();
+        if(!data.success || !data.url) throw new Error(data.error || 'Upload failed.');
+        const origin = location.origin;
+        const raw = origin + (data.url.startsWith('/') ? '' : '/') + data.url;
+        const link = origin + '/#view?img=' + encodeURIComponent(raw);
+        new QRCode(qrcode, { text: link, width: 256, height: 256, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
+        linkInput.value = link; testLink.href = link;
+        results.style.display='block'; results.scrollIntoView({behavior:'smooth'});
+        showInfo('Done! Scan the QR code or use Test View.');
+      } catch(e){
+        showErr(e.message || 'Something went wrong.');
+      } finally { overlay.style.display='none'; }
     });
 
-    btnDownloadQr.addEventListener("click", () => {
-      // Find element to draw from
-      const canvas = document.querySelector("#qrcode canvas");
-      const img = document.querySelector("#qrcode img");
-      let sourceElement = null;
-
-      if (canvas) {
-        sourceElement = canvas;
-      } else if (img && img.src) {
-        sourceElement = img;
-      }
-
-      if (sourceElement) {
-        // Create a new canvas in memory to add a white quiet zone border
-        const borderCanvas = document.createElement("canvas");
-        const ctx = borderCanvas.getContext("2d");
-        
-        const qrWidth = 256;
-        const qrHeight = 256;
-        const margin = 30; // 30px white border for Google Lens detection
-        
-        borderCanvas.width = qrWidth + (margin * 2);
-        borderCanvas.height = qrHeight + (margin * 2);
-        
-        // Fill white background
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, borderCanvas.width, borderCanvas.height);
-        
-        // Draw the original QR code centered
-        ctx.drawImage(sourceElement, margin, margin, qrWidth, qrHeight);
-        
-        // Export as PNG
-        const sourceUrl = borderCanvas.toDataURL("image/png");
-
-        const downloadAnchor = document.createElement("a");
-        downloadAnchor.href = sourceUrl;
-        downloadAnchor.download = "image_viewer_qrcode.png";
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        document.body.removeChild(downloadAnchor);
-      } else {
-        showError("Failed to extract QR Code image for download.");
-      }
+    // ---- download QR with quiet zone ----
+    dlBtn.addEventListener('click', ()=>{
+      const cv = qrcode.querySelector('canvas'); const im = qrcode.querySelector('img');
+      const src = cv || im; if(!src){ showErr('QR not ready.'); return; }
+      const m = 30, s = 256;
+      const c = document.createElement('canvas'); c.width = s+m*2; c.height = s+m*2;
+      const x = c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+      x.drawImage(src, m, m, s, s);
+      const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download='qr.png'; a.click();
     });
 
-    /* ==========================================================================
-       7. Utility Helpers
-       ========================================================================== */
-    function formatBytes(bytes, decimals = 2) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const dm = decimals < 0 ? 0 : decimals;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    }
+    copyBtn.addEventListener('click', ()=>{
+      navigator.clipboard.writeText(linkInput.value).then(()=>{
+        const t=copyBtn.textContent; copyBtn.textContent='✓'; setTimeout(()=>copyBtn.textContent=t,1500);
+      });
+    });
 
-    // Errors
-    function showError(msg) {
-      errorMessage.textContent = msg;
-      alertError.style.display = "flex";
-      alertInfo.style.display = "none";
+    // ---- borderless viewer (hash route) ----
+    function route(){
+      const h = location.hash;
+      if(h.startsWith('#view?')){
+        const u = new URLSearchParams(h.slice(6)).get('img');
+        if(u){ vimg.src=u; viewer.style.display='flex'; app.style.display='none'; document.body.style.background='#000'; showHud(); }
+        else { location.hash=''; }
+      } else { viewer.style.display='none'; vimg.src=''; app.style.display='flex'; document.body.style.background='var(--bg)'; }
     }
-
-    function hideError() {
-      alertError.style.display = "none";
-    }
-
-    function showInfo(msg) {
-      infoMessage.textContent = msg;
-      alertInfo.style.display = "flex";
-      alertError.style.display = "none";
-    }
-
-    function showLoading(msg) {
-      loadingText.textContent = msg;
-      loadingOverlay.style.display = "flex";
-    }
-
-    function hideLoading() {
-      loadingOverlay.style.display = "none";
-    }
+    function showHud(){ backBtn.classList.add('show'); clearTimeout(window._hud); window._hud=setTimeout(()=>{ if(location.hash.startsWith('#view?')){ backBtn.classList.remove('show'); document.body.style.cursor='none'; } },3000); }
+    ['mousemove','touchstart','keydown'].forEach(e=>window.addEventListener(e,()=>{ if(location.hash.startsWith('#view?')) showHud(); }));
+    backBtn.addEventListener('click', ()=>{ location.hash=''; });
+    window.addEventListener('hashchange', route);
+    route();
   </script>
 </body>
 </html>
