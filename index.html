@@ -1335,7 +1335,8 @@
       const response = await fetch('/api/upload', {
         method: "POST",
         headers: {
-          "Content-Type": fileBlob.type || "image/png"
+          "Content-Type": fileBlob.type || "image/png",
+          "x-filename": (fileBlob.name || "image.png")
         },
         body: fileBlob
       });
