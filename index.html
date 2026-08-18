@@ -723,56 +723,6 @@
     .viewer-back-btn.show-hud {
       opacity: 1;
     }
-
-    /* Preloaded Selector Styles */
-    .preloaded-selector-container {
-      display: flex;
-      flex-direction: column;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 1rem;
-      border-radius: 16px;
-      border: 1px solid var(--glass-border);
-      margin-bottom: 0.5rem;
-    }
-    .preloaded-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-secondary);
-      margin-bottom: 0.75rem;
-    }
-    .preloaded-buttons {
-      display: flex;
-      gap: 0.75rem;
-    }
-    .preloaded-btn {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 10px;
-      color: var(--text-secondary);
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    .preloaded-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-    }
-    .preloaded-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
-      box-shadow: 0 0 12px var(--primary-glow);
-    }
   </style>
 </head>
 <body>
@@ -786,23 +736,7 @@
 
     <!-- Main Generator Card -->
     <div class="card" style="display: flex; flex-direction: column; gap: 1.5rem;">
-      
-      <!-- Preloaded Image Selector -->
-      <div class="preloaded-selector-container">
-        <div class="preloaded-label">Choose Preloaded Meme Image:</div>
-        <div class="preloaded-buttons">
-          <button type="button" class="preloaded-btn active" id="btn-preload-gorilla">
-            🦍 Gorilla
-          </button>
-          <button type="button" class="preloaded-btn" id="btn-preload-doraemon">
-            🐱 Doraemon 1
-          </button>
-          <button type="button" class="preloaded-btn" id="btn-preload-doraemon2">
-            🐱 Doraemon 2
-          </button>
-        </div>
-      </div>
-      
+
       <!-- Upload Zone -->
       <div class="upload-zone" id="drop-zone">
         <div class="upload-icon-wrapper">
@@ -843,7 +777,7 @@
       <!-- Status Alert Block -->
       <div class="alert alert-info" id="alert-info">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        <span id="info-message">A default image (Gorilla) is preloaded. Click "Generate" to create a QR code for it immediately!</span>
+        <span id="info-message">Drop or browse any image, then click "Generate" to create a QR code for it.</span>
       </div>
 
       <div class="alert alert-error" id="alert-error">
@@ -924,27 +858,6 @@
     // State Variables
     let selectedFile = null;
 
-    // Preloaded image definitions
-    const preloadedImages = {
-      gorilla: {
-        url: './g.png',
-        name: 'g.png',
-        blob: null
-      },
-      doraemon: {
-        url: './d.png',
-        name: 'd.png',
-        blob: null
-      },
-      doraemon2: {
-        url: './d2.png',
-        name: 'd2.png',
-        blob: null
-      }
-    };
-    let activePreloadKey = 'gorilla';
-    let isUsingPreload = true;
-
     // DOM Elements
     const dropZone = document.getElementById("drop-zone");
     const fileSelector = document.getElementById("file-selector");
@@ -967,9 +880,6 @@
     const btnCopyLink = document.getElementById("btn-copy-link");
     const btnDownloadQr = document.getElementById("btn-download-qr");
     const btnTestLink = document.getElementById("btn-test-link");
-    const btnPreloadGorilla = document.getElementById("btn-preload-gorilla");
-    const btnPreloadDoraemon = document.getElementById("btn-preload-doraemon");
-    const btnPreloadDoraemon2 = document.getElementById("btn-preload-doraemon2");
 
     // Viewer Screen Elements
     const generatorContainer = document.getElementById("generator-container");
@@ -990,7 +900,7 @@
                        window.location.hostname.endsWith(".local");
 
     /* ==========================================================================
-       1. Setup and Preloading Default Image
+       1. Setup
        ========================================================================== */
     window.addEventListener("DOMContentLoaded", () => {
       // Fetch server network info only when running in a local environment
@@ -1009,88 +919,9 @@
         serverPort = window.location.port;
       }
 
-      // Preload the default images
-      preloadDefaultImages();
-
-      // Helper to handle button active state toggling
-      function resetPreloadBtnStates(activeBtn) {
-        [btnPreloadGorilla, btnPreloadDoraemon, btnPreloadDoraemon2].forEach(btn => {
-          btn.classList.remove("active");
-        });
-        activeBtn.classList.add("active");
-      }
-
-      // Bind preloaded buttons click events
-      btnPreloadGorilla.addEventListener("click", () => {
-        resetPreloadBtnStates(btnPreloadGorilla);
-        loadPreload('gorilla');
-        resultsContainer.style.display = "none";
-      });
-
-      btnPreloadDoraemon.addEventListener("click", () => {
-        resetPreloadBtnStates(btnPreloadDoraemon);
-        loadPreload('doraemon');
-        resultsContainer.style.display = "none";
-      });
-
-      btnPreloadDoraemon2.addEventListener("click", () => {
-        resetPreloadBtnStates(btnPreloadDoraemon2);
-        loadPreload('doraemon2');
-        resultsContainer.style.display = "none";
-      });
-
       // Route initially
       handleRouting();
     });
-
-    // Preload static assets
-    async function preloadDefaultImages() {
-      // 1. Preload Gorilla
-      try {
-        const response = await fetch('./g.png');
-        if (response.ok) {
-          preloadedImages.gorilla.blob = await response.blob();
-          // Set initial preview using Gorilla
-          loadPreload('gorilla');
-        }
-      } catch (error) {
-        console.error("Error preloading Gorilla:", error);
-      }
-
-      // 2. Preload Doraemon 1
-      try {
-        const response = await fetch('./d.png');
-        if (response.ok) {
-          preloadedImages.doraemon.blob = await response.blob();
-        }
-      } catch (error) {
-        console.error("Error preloading Doraemon 1:", error);
-      }
-
-      // 3. Preload Doraemon 2
-      try {
-        const response = await fetch('./d2.png');
-        if (response.ok) {
-          preloadedImages.doraemon2.blob = await response.blob();
-        }
-      } catch (error) {
-        console.error("Error preloading Doraemon 2:", error);
-      }
-    }
-
-    function loadPreload(key) {
-      activePreloadKey = key;
-      isUsingPreload = true;
-      selectedFile = null;
-      fileSelector.value = "";
-      
-      const imgInfo = preloadedImages[key];
-      if (imgInfo.blob) {
-        displayImagePreview(imgInfo.url, imgInfo.name, imgInfo.blob.size);
-      } else {
-        showInfo(`Failed to load ${key} image. Please try refreshing.`);
-      }
-    }
 
     /* ==========================================================================
        2. Hash-Routing / Screen Toggle (Dynamic Fullscreen Viewer)
@@ -1215,8 +1046,7 @@
       }
       
       selectedFile = file;
-      isUsingPreload = false; // Deactivate preload state since custom upload is selected
-      
+
       // Render Preview
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -1241,20 +1071,12 @@
       selectedFile = null;
       previewImage.src = "";
       fileSelector.value = "";
-      
-      // Restore preloaded image if available
-      const activePreload = preloadedImages[activePreloadKey];
-      if (activePreload && activePreload.blob) {
-        displayImagePreview(activePreload.url, activePreload.name, activePreload.blob.size);
-        isUsingPreload = true;
-        showInfo(`Restored default ${activePreloadKey === 'gorilla' ? 'Gorilla' : 'Doraemon'} image.`);
-      } else {
-        dropZone.style.display = "flex";
-        previewContainer.style.display = "none";
-        isUsingPreload = false;
-        showInfo("Please drop or browse an image file to start.");
-      }
-      
+
+      // Reset back to the drop zone — no default image to restore
+      dropZone.style.display = "flex";
+      previewContainer.style.display = "none";
+      showInfo("Please drop or browse an image file to start.");
+
       // Hide results when image resets
       resultsContainer.style.display = "none";
     });
@@ -1264,40 +1086,21 @@
        ========================================================================== */
     btnGenerate.addEventListener("click", async () => {
       hideError();
-      
-      // Ensure we have a file to work with (either user-uploaded, or fallback preloaded blob)
-      let uploadTarget = selectedFile;
-      let isPreload = isUsingPreload;
-      
-      let preloadName = 'g.png';
-      if (activePreloadKey === 'doraemon') {
-        preloadName = 'd.png';
-      } else if (activePreloadKey === 'doraemon2') {
-        preloadName = 'd2.png';
-      }
 
-      if (!uploadTarget) {
-        if (isPreload && preloadedImages[activePreloadKey].blob) {
-          uploadTarget = preloadedImages[activePreloadKey].blob;
-        } else {
-          showError("No image selected! Please upload an image file first.");
-          return;
-        }
+      // An image must be selected (we no longer ship default images)
+      if (!selectedFile) {
+        showError("Please select an image first — drop or browse any image, then generate.");
+        return;
       }
+      const uploadTarget = selectedFile;
 
       // Start Loading Overlay
       showLoading("Processing and generating QR Code...");
 
       try {
-        let imageUrl;
-        if (isPreload) {
-          // Default images are already hosted statically! No upload needed!
-          imageUrl = preloadName;
-        } else {
-          // Custom image: upload to our OWN backend (local server.js or our
-          // Vercel serverless function). No third-party service involved.
-          imageUrl = await uploadImageLocally(uploadTarget);
-        }
+        // Upload to our OWN backend (local server.js or our Vercel serverless
+        // function). No third-party service involved.
+        const imageUrl = await uploadImageLocally(uploadTarget);
 
         // Update loading text
         showLoading("Generating custom QR Code...");
