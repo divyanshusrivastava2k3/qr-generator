@@ -225,13 +225,13 @@
         if(!res.ok) throw new Error('Upload failed. Status: '+res.status);
         const data = await res.json();
         if(!data.success || !data.url) throw new Error(data.error || 'Upload failed.');
-        const origin = location.origin;
-        const raw = origin + (data.url.startsWith('/') ? '' : '/') + data.url;
+        // data.url is now an absolute public Blob URL (persists on Vercel).
+        const raw = data.url;
         // Base64 the image URL so QR scanners don't sniff it as a bare image
         // file (which makes them show their own preview instead of opening
         // our borderless viewer directly on scan).
         const enc = btoa(unescape(encodeURIComponent(raw)));
-        const link = origin + '/#view?img=' + enc;
+        const link = location.origin + '/#view?img=' + enc;
         new QRCode(qrcode, { text: link, width: 256, height: 256, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
         linkInput.value = link; testLink.href = link;
         results.style.display='block'; results.scrollIntoView({behavior:'smooth'});
@@ -267,6 +267,7 @@
           // img param is base64-encoded (to avoid scanner image-sniffing)
           let u = p;
           try { u = decodeURIComponent(escape(atob(p))); } catch(e){ u = p; }
+          vimg.onerror = () => { vimg.alt = 'Image could not be loaded.'; };
           vimg.src=u; viewer.style.display='flex'; app.style.display='none'; document.body.style.background='#000'; showHud();
         } else { location.hash=''; }
       } else { viewer.style.display='none'; vimg.src=''; app.style.display='flex'; document.body.style.background='var(--bg)'; }
