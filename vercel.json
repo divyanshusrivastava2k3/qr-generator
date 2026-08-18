@@ -1,4 +1,14 @@
 {
   "version": 2,
-  "cleanUrls": true
+  "cleanUrls": true,
+  "buildCommand": null,
+  "outputDirectory": null,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "g.png", "use": "@vercel/static" },
+    { "src": "d.png", "use": "@vercel/static" },
+    { "src": "d2.png", "use": "@vercel/static" },
+    { "src": "vendor/**", "use": "@vercel/static" },
+    { "src": "fonts/**", "use": "@vercel/static" }
+  ]
 }
