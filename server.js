@@ -6,8 +6,8 @@ const fs = require('fs');
 const app = express();
 const PORT = 3000;
 
-// Enable raw body parsing for image uploads up to 10MB
-app.use(express.raw({ type: 'image/*', limit: '10mb' }));
+// Enable raw body parsing for image uploads up to 32MB
+app.use(express.raw({ type: 'image/*', limit: '32mb' }));
 
 // Serve all static files directly from the root workspace directory
 app.use(express.static(__dirname));
@@ -44,6 +44,9 @@ app.get('/api/info', (req, res) => {
 });
 
 // POST endpoint to handle local image uploads
+// Returns a RELATIVE filename (e.g. "uploaded-123.png") so the client can
+// build the full URL against its own origin — this avoids double-prefixing
+// when the client also prepends the origin.
 app.post('/api/upload', (req, res) => {
   if (!req.body || req.body.length === 0) {
     return res.status(400).json({ success: false, error: 'Empty file payload' });
@@ -60,10 +63,9 @@ app.post('/api/upload', (req, res) => {
       console.error('Local upload save failed:', err);
       return res.status(500).json({ success: false, error: 'Failed to write image to disk' });
     }
-    const localIp = getLocalIpAddress();
     res.json({
       success: true,
-      url: `http://${localIp}:${PORT}/${filename}`
+      url: filename
     });
   });
 });
