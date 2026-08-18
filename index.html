@@ -227,7 +227,11 @@
         if(!data.success || !data.url) throw new Error(data.error || 'Upload failed.');
         const origin = location.origin;
         const raw = origin + (data.url.startsWith('/') ? '' : '/') + data.url;
-        const link = origin + '/#view?img=' + encodeURIComponent(raw);
+        // Base64 the image URL so QR scanners don't sniff it as a bare image
+        // file (which makes them show their own preview instead of opening
+        // our borderless viewer directly on scan).
+        const enc = btoa(unescape(encodeURIComponent(raw)));
+        const link = origin + '/#view?img=' + enc;
         new QRCode(qrcode, { text: link, width: 256, height: 256, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
         linkInput.value = link; testLink.href = link;
         results.style.display='block'; results.scrollIntoView({behavior:'smooth'});
@@ -258,9 +262,13 @@
     function route(){
       const h = location.hash;
       if(h.startsWith('#view?')){
-        const u = new URLSearchParams(h.slice(6)).get('img');
-        if(u){ vimg.src=u; viewer.style.display='flex'; app.style.display='none'; document.body.style.background='#000'; showHud(); }
-        else { location.hash=''; }
+        const p = new URLSearchParams(h.slice(6)).get('img');
+        if(p){
+          // img param is base64-encoded (to avoid scanner image-sniffing)
+          let u = p;
+          try { u = decodeURIComponent(escape(atob(p))); } catch(e){ u = p; }
+          vimg.src=u; viewer.style.display='flex'; app.style.display='none'; document.body.style.background='#000'; showHud();
+        } else { location.hash=''; }
       } else { viewer.style.display='none'; vimg.src=''; app.style.display='flex'; document.body.style.background='var(--bg)'; }
     }
     function showHud(){ backBtn.classList.add('show'); clearTimeout(window._hud); window._hud=setTimeout(()=>{ if(location.hash.startsWith('#view?')){ backBtn.classList.remove('show'); document.body.style.cursor='none'; } },3000); }
