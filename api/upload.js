@@ -9,8 +9,18 @@ const UPLOAD_DIR = '/tmp';
 
 function getExtension(contentType, filename) {
   // Prefer the real file extension when provided by the client.
-  if (filename && filename.includes('.')) {
-    const ext = filename.split('.').pop().toLowerCase().replace(/[^a-z0-9]/gi, '');
+  // filename may be base64-encoded on the client (to support non-Latin names)
+  // or a plain name. We only need the extension here, so decode first.
+  let decodedName = filename;
+  if (filename) {
+    try {
+      decodedName = Buffer.from(filename, 'base64').toString('utf8');
+    } catch (e) {
+      decodedName = filename;
+    }
+  }
+  if (decodedName && decodedName.includes('.')) {
+    const ext = decodedName.split('.').pop().toLowerCase().replace(/[^a-z0-9]/gi, '');
     if (ext) return ext;
   }
   if (!contentType) return 'png';

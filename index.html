@@ -1135,11 +1135,14 @@
     });
 
     async function uploadImageLocally(fileBlob) {
+      // Header values must be ISO-8859-1; filenames with non-Latin chars
+      // (Hindi, emoji, etc.) would throw. Encode to base64 to be safe.
+      const safeName = btoa(unescape(encodeURIComponent(fileBlob.name || "image.png")));
       const response = await fetch('/api/upload', {
         method: "POST",
         headers: {
           "Content-Type": fileBlob.type || "image/png",
-          "x-filename": (fileBlob.name || "image.png")
+          "x-filename": safeName
         },
         body: fileBlob
       });
